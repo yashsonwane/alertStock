@@ -10,7 +10,7 @@ import requests
 
 st.set_page_config(layout = 'wide', initial_sidebar_state='collapsed')
 
-credentials_path = 'key.json' 
+credentials_path = 'key.json'
 
 ############# read Gsheet #############
 def read_gsheet(credentials_path):
@@ -39,7 +39,7 @@ def change_flag_status(worksheet,row_number,new_value):
 
     """
     # Defines the cell to update using row_number and a hardcoded column ('O')
-    cell_to_update = f"O{row_number+2}"  
+    cell_to_update = f"P{row_number+2}"  
 
     # Updates the specified cell with new_value
     worksheet.update_acell(cell_to_update, new_value)
@@ -57,21 +57,31 @@ def escape_special_characters(text, special_characters= ["|","(","=",")",".",","
     return text
 
 #############  #############
-def send_message(message):
+def send_message(message, grp):
     """Function to send message."""
 
     bot_token = '6619777004:AAFX4CnYdKZMfpniA04OSCfZN4-VxSXT8-w'
     channel_id = '-1002033009847' # Group ID "testt"
+    channel_id2 = '-4094876639' # "yash and testt"
     bot_message = escape_special_characters(message)
 
-    send_text = f'https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={channel_id}&parse_mode=MarkdownV2&text={bot_message}'
-
-    response = requests.get(send_text)
+    if grp.lower() == "normal" or grp.lower() == "" :
+       send_text = f'https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={channel_id}&parse_mode=MarkdownV2&text={bot_message}'
+       response = requests.get(send_text)
+    if grp.lower() == "premium":
+       send_text = f'https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={channel_id2}&parse_mode=MarkdownV2&text={bot_message}'
+       response = requests.get(send_text)
+    if grp.lower() == "both":
+       send_text = f'https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={channel_id}&parse_mode=MarkdownV2&text={bot_message}'
+       response = requests.get(send_text)
+       send_text = f'https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={channel_id2}&parse_mode=MarkdownV2&text={bot_message}'
+       response = requests.get(send_text)
+    
     return response.content
 
 #############  #############
 
-def message_for_target3(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI):
+def message_for_target3(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI,grp):
   # Compose Telegram message for target3 achieved
   message_for_telegram_for_targert3_achive = f"""*{stock_name.upper()}* stock recommend to our premium group members. 
   On *{recommended_date}* at price *{recommended_price}*
@@ -80,30 +90,30 @@ def message_for_target3(stock_name,recommended_date,recommended_price,target1,ta
   Target 3- *{target3}* Achieved ! ✅
   *{ROI}%* Returns. """
   # Send message to Telegram group
-  response = send_message(message_for_telegram_for_targert3_achive)
+  response = send_message(message_for_telegram_for_targert3_achive,grp)
   # Print message and response to console
   st.write(message_for_telegram_for_targert3_achive)
   st.write(response)
 
 
-def message_for_target2(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI):
+def message_for_target2(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI,grp):
   # Compose Telegram message for target2 achieved
   message_for_telegram_for_targert2_achive = f"""*{stock_name.upper()}* stock recommend to our premium group members. 
   On *{recommended_date}* at price *{recommended_price}*
   Target 1- *{target1}* Achieved ! ✅
   Target 2- *{target2}* Achieved ! ✅
   *{ROI}%* Returns. """
-  response = send_message(message_for_telegram_for_targert2_achive)
+  response = send_message(message_for_telegram_for_targert2_achive,grp)
   st.write(message_for_telegram_for_targert2_achive)
   st.write(response)
 
-def message_for_target1(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI):
+def message_for_target1(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI,grp):
   # Compose Telegram message for target1 achieved
   message_for_telegram_for_targert1_achive = f"""*{stock_name.upper()}* stock recommend to our premium group members. 
   On *{recommended_date}* at price *{recommended_price}*
   Target 1- *{target1}* Achieved ! ✅
   *{ROI}%* Returns. """
-  response = send_message(message_for_telegram_for_targert1_achive)
+  response = send_message(message_for_telegram_for_targert1_achive,grp)
   st.write(message_for_telegram_for_targert1_achive)
   st.write(response)
 
@@ -116,16 +126,17 @@ def sub_process(target_achive_df,worksheet,target_point,flag_status):
       target1 = target_achive_df["Target 1"].iloc[row]
       target2 = target_achive_df["Target 2"].iloc[row]
       target3 = target_achive_df["Target 3"].iloc[row]
+      grp = target_achive_df["Group"].iloc[row]
       ROI = str(round(((float(target_achive_df[f"Target {target_point}"].iloc[row])-float(target_achive_df["Recommended Price"].iloc[row]))/float(target_achive_df["Recommended Price"].iloc[row]))*100,2))
       row_number = target_achive_df.index[row]
       print(target_achive_df.iloc[row])
       
       if target_point == 3:
-        message_for_target3(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI)
+        message_for_target3(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI,grp)
       if target_point == 2:
-        message_for_target2(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI)
+        message_for_target2(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI,grp)
       if target_point == 1:
-        message_for_target1(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI)
+        message_for_target1(stock_name,recommended_date,recommended_price,target1,target2,target3,ROI,grp)
       change_flag_status(worksheet,row_number,f"{flag_status}")
       st.write("\n messege sent \n\n")
 
@@ -192,13 +203,14 @@ def main():
                     recommended_price = Stoploss_df["Recommended Price"].iloc[row]
                     Stoploss1 = Stoploss_df["Stoploss"].iloc[row]
                     LII = str(round(((float(Stoploss_df["Recommended Price"].iloc[row])-float(Stoploss_df["Stoploss"].iloc[row]))/float(Stoploss_df["Recommended Price"].iloc[row]))*100,2))
+                    grp = Stoploss_df["Group"].iloc[row]
                     row_number = Stoploss_df.index[row]
                     print(Stoploss_df.index[row])
                     message_for_telegram_for_stoploss = f"""*{stock_name.upper()}* stock recommend to our premium group members. 
                     On *{recommended_date}* at price *{recommended_price}*
                     SL - *{Stoploss1}* Hit
                     *{LII}%* lose.❌ """
-                    response = send_message(message_for_telegram_for_stoploss)
+                    response = send_message(message_for_telegram_for_stoploss, grp)
                     st.write(message_for_telegram_for_stoploss)
                     st.write(response)
                     change_flag_status(worksheet,row_number,"-1")
